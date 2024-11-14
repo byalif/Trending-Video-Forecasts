@@ -23,7 +23,7 @@ public class ScarperController {
 	@Autowired
 	RestTemplate restTemplate;
 
-	private final String apiKey = "xx";
+	private final String apiKey = "AIzaSyDbv58AOz4AIbgHUEjBFt3mfMr1XUCFVqY";
 	private final String baseUrl = "https://www.googleapis.com/youtube/v3/search";
 	private final String videosUrl = "https://www.googleapis.com/youtube/v3/videos";
 
