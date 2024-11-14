@@ -1,208 +1,155 @@
-# Beat Forecasting Tool - README
 
-Welcome to the **Beat Forecasting Tool**! This project aims to predict the performance and trends of various music production videos and type beats on YouTube, focusing on key metrics like view counts, likes, and comments. This tool uses machine learning models to forecast future growth and performance based on past data, providing producers and beatmakers with valuable insights on potential future trends. Whether you're an aspiring music producer or just someone passionate about the music industry, this tool can help you better understand and predict the future success of your videos.
+# Type Beats Trend Prediction
 
-## Table of Contents
+## Overview
 
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [How It Works](#how-it-works)
-- [Setting Up and Running the Project](#setting-up-and-running-the-project)
-  - [Spring Boot Backend Setup](#spring-boot-backend-setup)
-  - [Python Flask App Setup](#python-flask-app-setup)
-  - [Changing API Keys and Credentials](#changing-api-keys-and-credentials)
-  - [Commands to Run](#commands-to-run)
-- [Machine Learning Model](#machine-learning-model)
-  - [LSTM Model Architecture](#lstm-model-architecture)
-- [Future Improvements](#future-improvements)
-- [License](#license)
+This project is a **distributed forecasting system** designed to predict trending **type beats** on YouTube. The system scrapes real-time data, processes it using machine learning models, and provides up-to-date insights into which beats are likely to trend in the next 24 hours. This application is perfect for beatmakers who want to stay ahead of trends and quickly identify the most popular beats on YouTube to save time and capitalize on emerging trends.
 
-## Project Overview
+The system consists of the following components:
+- **Spring Boot API** for scraping YouTube's API, storing metadata in a MySQL database, and serving APIs for the frontend.
+- **Python** scripts for machine learning, data cleaning, preprocessing, and custom SQL queries.
+- **Nginx** reverse proxy for serving the HTML frontend.
 
-The **Beat Forecasting Tool** analyzes YouTube data related to music production videos and type beats. It collects data on videos and metrics like views, likes, and comments to calculate growth rates over the past 24 hours. This data is then used to predict future growth and trends for various artist types, including **type beats** like **Lil Baby Type Beat** or **Free Veeze X Lucki Type Beat**.
+The architecture is distributed across multiple **droplets** (or virtual machines) to separate concerns and scale each component independently.
 
-Key goals of this project:
+## Key Features
+- **Trending Type Beats Prediction**: Predicts the top 'type beats' based on YouTube engagement data such as views, likes, and comments.
+- **Real-time Data Processing**: Continuously scrapes and aggregates data on trending beats, providing up-to-date predictions.
+- **Machine Learning**: Uses an LSTM model to forecast trends based on historical engagement data.
+- **Cron Jobs**: Automated Python scripts run every 2 hours to clean, preprocess, and analyze data using custom SQL queries for trend prediction.
+- **Nginx Reverse Proxy**: Exposes APIs and serves the frontend through a reverse proxy for enhanced performance.
 
-- **Predict Future Growth**: By using historical data, the tool predicts future performance metrics (like view growth, like count, and comment count).
-- **Categorize by Artist Type**: It automatically categorizes music videos based on artist names extracted from the video titles, which is essential for producers looking for trends in specific genres.
-- **Track Video and Artist Performance**: It tracks the performance of videos and artist types over time, providing valuable insights to help producers make informed decisions.
+## System Architecture
 
-## Features
+This application is distributed across multiple droplets:
+1. **Spring Boot Instance (Droplet 1)**: Scrapes YouTube's API and exposes an API for the frontend.
+2. **MySQL Instance (Droplet 2)**: Stores metadata scraped from YouTube in a MySQL database.
+3. **Python Instance (Droplet 3)**: Runs a cron job every 2 hours to clean and preprocess data, execute custom SQL queries, and run the machine learning model for trend prediction.
 
-- **Real-Time Data Collection**: The tool collects real-time metrics from YouTube videos, including view counts, like counts, comment counts, and timestamps.
-- **Growth Prediction**: Using machine learning models, it predicts the future performance of each video based on current data.
-- **Data Storage**: All historical and forecast data is stored in a MySQL database for efficient querying and analysis.
-- **Artist Categorization**: Based on the video title, it dynamically categorizes the music type (e.g., “Lil Baby Type Beat”) to help track trends per genre.
-- **API Integration**: The project integrates with external APIs for data retrieval (e.g., YouTube Data API) and stores results for later analysis.
+### Distributed Data Flow
+- The Spring Boot application scrapes YouTube data every hour, storing the results in a MySQL database.
+- Every 2 hours, a Python script runs a cron job that aggregates, cleans, and preprocesses the data, running machine learning models to predict trends.
+- The predictions are stored and served by the Spring Boot API, which the frontend consumes for real-time insights.
+- Data communication between the services is handled over HTTP/HTTPS with each component running on a separate server instance for better scalability and performance.
 
-## Technologies Used
+## Getting Started
 
-- **Backend**: Spring Boot (Java)
-  - MySQL for database management
-  - Spring Data JPA for interacting with the database
-  - REST APIs for integrating data
-- **Machine Learning**: Python with TensorFlow
-  - LSTM (Long Short-Term Memory) Model for time-series forecasting
-  - Data pre-processing with **Pandas**, **NumPy**, and **MinMaxScaler**
-- **Frontend**: Flask (Python)
-  - Display analytics and forecasts
-- **Deployment**: Docker for containerization
-- **Database**: MySQL
-- **Environment Variables**: For securely managing sensitive information (e.g., database credentials, API keys)
+To get started with this project and use it for your own 'type beats' trend predictions, follow the instructions below.
 
-## How It Works
+### Prerequisites
 
-1. **Data Collection**: The system queries a MySQL database to retrieve videos and metrics (like view count, like count, etc.) from the `videos` and `metrics` tables.
-2. **Artist Type Extraction**: Based on video titles, the system extracts the artist types (e.g., “Lil Baby Type Beat”) and adds them to the data.
+Before you begin, you will need the following:
+- **Java 11 or later**: For running Spring Boot applications.
+- **MySQL**: Set up a MySQL database to store YouTube metadata.
+- **Python 3.7+**: Required for running the machine learning model and data processing.
+- **YouTube API Key**: To access YouTube's API and gather data.
+- **Nginx**: For reverse proxying requests and serving the frontend.
+- **Cron Jobs**: For automating periodic tasks.
 
-3. **Growth Rate Calculation**: Growth rate is calculated based on changes in views, likes, and comments over the past 24 hours, using weighted values.
+### Setting Up the Spring Boot Application
 
-4. **Forecasting with Machine Learning**: An LSTM model is trained on the growth rate data to predict future growth for the top artist types. This involves creating sequences from historical data, scaling the data, and then using the model to predict the next 24 hours of growth.
-
-5. **Database Storage**: The forecasted values are stored in the database for further analysis and tracking.
-
-6. **API Integration**: The project integrates with a YouTube Data API to retrieve the necessary video metrics. The API key for accessing this API is configurable.
-
-## Setting Up and Running the Project
-
-To run this project, you'll need to set up two main components:
-
-### Spring Boot Backend Setup
-
-1. **Clone the repository**:
-
+1. Clone the repository and build the Spring Boot application:
    ```bash
-   git clone https://github.com/your-repository/beat-forecasting-tool.git
-   cd beat-forecasting-tool
+   git clone <repository_url>
+   cd <project_directory>
+   ./mvnw clean install
    ```
 
-2. **Set up environment variables**:
-
-   - Create a `.env` file in the root directory to securely store sensitive credentials such as your YouTube API key and database credentials. Example:
-
-     ```
-     DB_HOST=165.22.183.241
-     DB_PORT=3306
-     DB_USER=your-username
-     DB_PASSWORD=your-password
-     API_KEY=your-api-key
-     ```
-
-3. **Configure Spring Boot**:
-
-   - In `application.properties`, replace sensitive values with references to the environment variables:
-
+2. Update the configuration files with your YouTube API credentials and MySQL database details:
+   - `application.properties` in `src/main/resources`:
      ```properties
-     spring.application.name=scraper
-     spring.datasource.url=jdbc:mysql://${DB_HOST}:${DB_PORT}/scraper?useSSL=false&serverTimezone=UTC
-     spring.datasource.username=${DB_USER}
-     spring.datasource.password=${DB_PASSWORD}
-     spring.jpa.hibernate.ddl-auto=update
-     spring.jpa.show-sql=true
-     spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+     youtube.api.key=<YOUR_YOUTUBE_API_KEY>
+     spring.datasource.url=jdbc:mysql://<MYSQL_HOST>:<MYSQL_PORT>/<DATABASE_NAME>
+     spring.datasource.username=<MYSQL_USERNAME>
+     spring.datasource.password=<MYSQL_PASSWORD>
      ```
 
-4. **Run the Spring Boot Application**:
-   - Run the Spring Boot backend application:
+3. Run the Spring Boot application:
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
+### Setting Up the Python Script for Machine Learning
+
+1. Clone the repository and set up a Python virtual environment:
+   ```bash
+   git clone <repository_url>
+   cd <project_directory>
+   python3 -m venv myenv
+   source myenv/bin/activate
+   ```
+
+2. Install the required Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Update the configuration files for the cron job and MySQL credentials.
+
+4. Set up a cron job for the Python script:
+   - Edit your crontab to run the script every 2 hours:
      ```bash
-     mvn spring-boot:run
+     crontab -e
      ```
-
-### Python Flask App Setup
-
-1. **Install required dependencies**:
-
-   - Install Python dependencies using `pip`:
+     Add the following line to execute the script every 2 hours:
      ```bash
-     pip install -r requirements.txt
+     0 */2 * * * source /home/scripts/myenv/bin/activate && /home/scripts/myenv/bin/python /home/scripts/run_analysis.py >> /home/scripts/log.txt 2>&1
      ```
 
-2. **Set up environment variables**:
+5. The Python script will now run every 2 hours to preprocess and analyze the data, executing custom SQL queries and running the machine learning model.
 
-   - Create a `.env` file for your Python app to store credentials, similar to the Spring Boot setup.
+### Setting Up Nginx Reverse Proxy
 
-     Example for `.env`:
+1. Install Nginx on your server:
+   ```bash
+   sudo apt update
+   sudo apt install nginx
+   ```
 
-     ```
-     DB_HOST=165.22.183.241
-     DB_USER=your-username
-     DB_PASSWORD=your-password
-     API_KEY=your-api-key
-     ```
-
-3. **Run the Flask Application**:
-
-   - Start the Flask application:
+2. Configure Nginx to reverse proxy requests to the Spring Boot application and serve the frontend:
+   - Edit the default configuration file:
      ```bash
-     python app.py
+     sudo nano /etc/nginx/sites-available/default
+     ```
+   - Replace the contents with the following:
+     ```nginx
+     server {
+         listen 80;
+         server_name <YOUR_DOMAIN_OR_IP>;
+
+         location / {
+             root /var/www/html;
+             index index.html;
+         }
+
+         # Reverse proxy for Spring Boot API
+         location /api/ {
+             proxy_pass http://<SPRING_BOOT_IP>:8080/;
+             proxy_set_header Host $host;
+             proxy_set_header X-Real-IP $remote_addr;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             proxy_set_header X-Forwarded-Proto $scheme;
+         }
+     }
      ```
 
-4. **EndPoints**:
-
-   - The `/run-analysis` endpoint will trigger the analysis and forecasting process. You can use tools like Postman or simply access it from a browser.
-
-   Example:
-
+3. Restart Nginx:
    ```bash
-   curl http://localhost:5000/run-analysis
+   sudo systemctl restart nginx
    ```
 
-### Changing API Keys and Credentials
+### Testing the System
 
-- **API Key in Spring Boot**:
+- After setting up the system, you can access the **frontend** via the Nginx reverse proxy on `http://<YOUR_DOMAIN_OR_IP>`.
+- The Spring Boot application will continue scraping data every hour, and the Python cron job will run every 2 hours to update the predictions.
+- The machine learning model will provide real-time insights into which 'type beats' are trending and forecast the next top beats.
 
-  - The YouTube Data API key needs to be updated in your environment variables.
-  - You can replace `${API_KEY}` in `application.properties` to dynamically load the correct value.
+## Future Enhancements
+- **Real-Time Data Updates**: Incorporate WebSockets or other real-time data streaming technologies to push updates instantly to the frontend.
+- **More Advanced Machine Learning Models**: Enhance the model by incorporating additional features or training on larger datasets.
+- **Dashboard and Visualizations**: Create a more interactive dashboard for content creators to explore trend predictions.
 
-- **Database Credentials**:
-  - In the `.env` files, you should replace the database credentials (`DB_HOST`, `DB_USER`, `DB_PASSWORD`) with your own values to ensure secure database access.
+## License
 
-### Commands to Run
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-1. **Spring Boot Application**:
-
-   ```bash
-   mvn spring-boot:run
-   ```
-
-2. **Python Flask Application**:
-
-   ```bash
-   python app.py
-   ```
-
-3. **Run the Analysis Endpoint**:
-
-   - Trigger the analysis by accessing the `/run-analysis` endpoint via your browser or using Postman.
-
-   Example:
-
-   ```bash
-   curl http://localhost:5000/run-analysis
-   ```
-
-## Machine Learning Model
-
-The **LSTM (Long Short-Term Memory)** model is used for time-series forecasting to predict the future growth of the top artist types based on historical data.
-
-### LSTM Model Architecture
-
-The model is built using the **Keras** library in Python. It consists of the following layers:
-
-- **Input Layer**: Accepts the data sequence from the past growth metrics.
-- **LSTM Layer**: Captures long-term dependencies in the time-series data.
-- **Dropout Layers**: Helps prevent overfitting.
-- **Dense Layer**: Outputs the predicted value for future growth.
-
-```python
-model = Sequential([
-    Input(shape=(adjusted_look_back, 1)),
-    LSTM(10, return_sequences=True),
-    Dropout(0.2),
-    LSTM(10, return_sequences=False),
-    Dropout(0.2),
-    Dense(16),
-    Dense(1)  # Final output layer for growth score prediction
-])
-```
