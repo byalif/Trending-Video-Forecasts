@@ -26,7 +26,7 @@ public class VideoDataCollectionService {
     @Autowired
     private VideoMetricService videoMetricsService;
 
-    private final String API_KEY = "xx"; // Replace with your actual API key
+    private final String API_KEY = "AIzaSyDbv58AOz4AIbgHUEjBFt3mfMr1XUCFVqY"; // Replace with your actual API key
     private final String SEARCH_URL = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=type+beat&maxResults=30&key="
             + API_KEY;
     private final String VIDEO_DETAILS_URL = "https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=%s&key="
@@ -74,11 +74,6 @@ public class VideoDataCollectionService {
             }
 
             System.out.println("Data collection and storage complete at " + LocalDateTime.now());
-
-            // Step 4: Call external API and process response
-            String analysisUrl = "http://159.89.32.164:5000/run-analysis";
-            restTemplate.getForObject(analysisUrl, ArtistForecastResponse.class);
-
             System.out.println("Status: 200");
 
         } catch (Exception e) {

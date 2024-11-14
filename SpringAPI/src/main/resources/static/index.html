@@ -133,9 +133,10 @@
 
     // Function to update the last updated timestamp
     function updateLastUpdated(timestamp) {
-        const formattedTimestamp = new Date(timestamp).toLocaleString();
-        document.getElementById('lastUpdated').textContent = `Last Updated: ${formattedTimestamp}`;
+            const localTimestamp = convertToLocalTime(timestamp);
+            document.getElementById('lastUpdated').textContent = `Last Updated: ${localTimestamp}`;
     }
+
 
     // Function to adjust projected growth based on growth speed
     function adjustProjectedGrowth(data) {
@@ -152,7 +153,7 @@
         const datasets = filteredData.map(item => ({
             label: item.artist_type,
             data: item.forecast_values,
-            borderColor: 'rgba(75, 192, 192, 1)',
+            borderColor: 'rgba(75, 192, 192, 1)', 
             fill: false
         }));
 
@@ -194,6 +195,40 @@
             }
         });
     }
+
+    function convertToLocalTime(sqlTimestamp) {
+        // Parse the SQL timestamp string into a Date object
+        const date = new Date(sqlTimestamp);
+
+        // Subtract 5 hours (5 * 60 * 60 * 1000 milliseconds)
+        date.setHours(date.getHours() - 5);
+
+        // Convert the Date object to New York time using the Intl.DateTimeFormat API
+        const options = {
+            timeZone: 'America/New_York',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        };
+
+        // Format the date according to New York time
+        const localTime = new Intl.DateTimeFormat('en-US', options).format(date);
+
+        return localTime;
+    }
+
+    // Update the last updated timestamp, subtracting 5 hours
+    function updateLastUpdated(timestamp) {
+        const localTimestamp = convertToLocalTime(timestamp);
+        document.getElementById('lastUpdated').textContent = `Last Updated: ${localTimestamp}`;
+    }
+
+
+
 
     // Function to create and display metadata for all beats
     function displayMetadata(filteredData) {
