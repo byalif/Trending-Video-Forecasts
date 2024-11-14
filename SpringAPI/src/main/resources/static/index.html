@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trending Beats Forecast</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7fc;
+            color: #333;
+        }
+        .titlee{
+            margin-top: 50px;
+            display: flex;
+            font-weight: 100;
+            font-size: 20px;
+            justify-content: center;
+            letter-spacing: 1px;
+        }
+
+        header {
+            background-color: #4CAF50;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+        .positive-growth {
+            color: #4CAF50; /* Green color for positive growth rate */
+            font-weight: bold;
+        }
+
+        .last-updated {
+            text-align: center;
+            font-size: 16px;
+            color: #888;
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
+
+        .container {
+            width: 90%;
+            margin: 0 auto;
+        }
+
+        /* Deselect All Section */
+        .checkbox-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .checkbox-container label {
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        /* Beat Metadata Section */
+        .metadata-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .metadata-card {
+            margin-bottom: 20px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: calc(33.33% - 10px);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .metadata-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .metadata-card h4 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .metadata-card p {
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Responsive Layout for Metadata */
+        @media (max-width: 768px) {
+            .metadata-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Trending Beats Forecast for Next 24 Hours</h1>
+    </header>
+
+    <div class="last-updated" id="lastUpdated"></div>
+
+    <div class="container">
+        <!-- Graphs for Growth Trends and Projected Growth -->
+        <div class="chart-container">
+            <div>
+                <h3>Projected 24-hour Growth Trends</h3>
+                <canvas id="growthTrendsChart"></canvas>
+            </div>
+            <div>
+                <h3>Comparison of Projected Growth</h3>
+                <canvas id="projectedGrowthChart"></canvas>
+            </div>
+        </div>
+        <div ><h4 class="titlee">Beats Trending Forecast </h4></div>
+        <!-- Metadata Section -->
+        <div class="metadata-container" id="metadataContainer">
+            <!-- This will be dynamically populated with all 30 beats and their metadata -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const apiUrl = "http://159.65.171.223:8080/latest-forecasts"; // Your API URL
+
+    // Function to update the last updated timestamp
+    function updateLastUpdated(timestamp) {
+        const formattedTimestamp = new Date(timestamp).toLocaleString();
+        document.getElementById('lastUpdated').textContent = `Last Updated: ${formattedTimestamp}`;
+    }
+
+    // Function to adjust projected growth based on growth speed
+    function adjustProjectedGrowth(data) {
+        data.forEach(item => {
+            if (item.growth_speed < 0) {
+                item.projected_growth = -Math.abs(item.projected_growth);
+            }
+        });
+    }
+
+    // Function to plot the graph based on selected beats
+    function plotGrowthTrends(filteredData) {
+        const ctx = document.getElementById('growthTrendsChart').getContext('2d');
+        const datasets = filteredData.map(item => ({
+            label: item.artist_type,
+            data: item.forecast_values,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            fill: false
+        }));
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: datasets[0].data.length}, (_, i) => `Hour ${i + 1}`),
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {beginAtZero: true}
+                }
+            }
+        });
+    }
+
+    // Function to plot Comparison of Projected Growth
+    function plotProjectedGrowth(filteredData) {
+        const ctx = document.getElementById('projectedGrowthChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: filteredData.map(item => item.artist_type),
+                datasets: [{
+                    label: 'Projected Growth',
+                    data: filteredData.map(item => item.projected_growth),
+                    backgroundColor: filteredData.map(item => item.projected_growth > 0 ? 'rgba(75, 192, 192, 0.2)' : 'rgba(255, 99, 132, 0.2)'),
+                    borderColor: filteredData.map(item => item.projected_growth > 0 ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {beginAtZero: true}
+                }
+            }
+        });
+    }
+
+    // Function to create and display metadata for all beats
+    function displayMetadata(filteredData) {
+        const container = document.getElementById('metadataContainer');
+        container.innerHTML = filteredData.map(item => {
+            // Determine if the growth rate is positive
+            const growthRateClass = item.growth_rate > 0 && item.projected_growth > 0 ? 'positive-growth' : '';
+
+            return `
+                <div class="metadata-card">
+                    <h4>${item.artist_type}</h4>
+                    <p><strong class="${growthRateClass}">Growth Rate:</strong> ${item.growth_rate}%</p>
+                    <p><strong>Projected Growth:</strong> ${item.projected_growth}%</p>
+                    <p><strong>Growth Speed:</strong> ${item.growth_speed} views/hour</p>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Function to fetch data from API
+    async function fetchData() {
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            // Update last updated timestamp
+            updateLastUpdated(data[0].timestamp);
+
+            // Adjust projected growth based on growth speed
+            adjustProjectedGrowth(data);
+
+            // Display metadata and plot graphs
+            displayMetadata(data);
+            plotGrowthTrends(data);
+            plotProjectedGrowth(data);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    }
+
+    // Initialize the page
+    function init() {
+        fetchData();
+    }
+
+    init();
+</script>
+</body>
+
+</html>
