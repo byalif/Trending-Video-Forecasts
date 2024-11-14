@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ForecastController {
-    
+
     @Autowired
     JdbcTemplate jdbcTemplate;
 
@@ -24,8 +24,8 @@ public class ForecastController {
     public List<Map<String, Object>> getLatestForecasts() {
         // Step 1: Fetch the 30 most recent forecasts
         String query = "SELECT forecast_id, artist_type, current_views, projected_growth, growth_rate, " +
-                       "growth_speed, top_potential_rank, growth_rate_rank, fastest_risers_rank, forecast_values, timestamp " +
-                       "FROM artist_forecasts ORDER BY timestamp DESC LIMIT 30";
+                "growth_speed, top_potential_rank, growth_rate_rank, fastest_risers_rank, forecast_values, timestamp " +
+                "FROM artist_forecasts ORDER BY timestamp DESC LIMIT 30";
 
         List<Map<String, Object>> forecasts = jdbcTemplate.query(query, new RowMapper<Map<String, Object>>() {
             @Override
@@ -43,7 +43,7 @@ public class ForecastController {
                 result.put("top_potential_rank", rs.getInt("top_potential_rank"));
                 result.put("growth_rate_rank", rs.getInt("growth_rate_rank"));
                 result.put("fastest_risers_rank", rs.getInt("fastest_risers_rank"));
-                result.put("timestamp", rs.getTimestamp("timestamp").toString());  // Convert timestamp to string
+                result.put("timestamp", rs.getTimestamp("timestamp").toString()); // Convert timestamp to string
 
                 // Step 3: Parse forecast values from comma-separated string to List<Double>
                 String forecastValuesStr = rs.getString("forecast_values");
