@@ -149,7 +149,3 @@ Before you begin, you will need the following:
 - **More Advanced Machine Learning Models**: Enhance the model by incorporating additional features or training on larger datasets.
 - **Dashboard and Visualizations**: Create a more interactive dashboard for content creators to explore trend predictions.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
