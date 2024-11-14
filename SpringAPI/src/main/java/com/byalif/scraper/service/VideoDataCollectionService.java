@@ -26,7 +26,7 @@ public class VideoDataCollectionService {
     @Autowired
     private VideoMetricService videoMetricsService;
 
-    private final String API_KEY = "AIzaSyDbv58AOz4AIbgHUEjBFt3mfMr1XUCFVqY"; // Replace with your actual API key
+    private final String API_KEY = ""; // Replace with your actual API key
     private final String SEARCH_URL = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=type+beat&maxResults=30&key="
             + API_KEY;
     private final String VIDEO_DETAILS_URL = "https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=%s&key="
